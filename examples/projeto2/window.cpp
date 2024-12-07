@@ -10,8 +10,6 @@ template <> struct std::hash<Vertex> {
   }
 };
 
-
-
 void Window::onEvent(SDL_Event const &event) {
   if (event.type == SDL_KEYDOWN) {
     m_keyState[event.key.keysym.sym] = true; // Mark the key as pressed
@@ -23,7 +21,6 @@ void Window::onEvent(SDL_Event const &event) {
 }
 
 void Window::onCreate() {
-  
   auto const &assetsPath{abcg::Application::getAssetsPath()};
 
   abcg::glClearColor(0, 0, 0, 1);
@@ -45,7 +42,7 @@ void Window::onCreate() {
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
   // Load model
-  loadModelFromFile(assetsPath + "bunny.obj");
+  loadModelFromFile(assetsPath + "lego.obj");
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
@@ -152,9 +149,9 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(m_VAO);
 
-  // Draw white bunny
+  // Draw white lego
   glm::mat4 model{1.0f};
- model = glm::translate(model, glm::vec3(-1.25f, 0.0f, 0.0f));
+  model = glm::translate(model, glm::vec3(-1.25f, 0.0f, 0.0f));
   model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
   model = glm::scale(model, glm::vec3(0.3f));
 
@@ -163,11 +160,7 @@ void Window::onPaint() {
   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                        nullptr);
 
-  // Store the bunny's model matrix for raycasting
-  m_whiteBunnyModel = model;
-
-
-  // Draw yellow bunny
+  // Draw yellow lego
   model = glm::mat4(1.0);
   model = glm::translate(model, glm::vec3(-0.75f, 0.6f, -0.0f));
   model = glm::scale(model, glm::vec3(0.3f));
@@ -177,8 +170,7 @@ void Window::onPaint() {
   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                        nullptr);
 
-
-  // Draw green bunny
+  // Draw green lego
   model = glm::mat4(1.0);
   model = glm::translate(model, glm::vec3(0.0f, 1.0f, -0.0f));
   model = glm::scale(model, glm::vec3(0.3f));
@@ -188,8 +180,7 @@ void Window::onPaint() {
   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                        nullptr);
 
-
-  // Draw blue bunny
+  // Draw blue lego
   model = glm::mat4(1.0);
   model = glm::translate(model, glm::vec3(0.75f, 0.6f, 0.0f));
   model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
@@ -200,8 +191,7 @@ void Window::onPaint() {
   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                        nullptr);
 
-
-  // Draw red bunny
+  // Draw red lego
   model = glm::mat4(1.0);
   model = glm::translate(model, glm::vec3(1.25f, 0.0f, 0.0f));
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
@@ -212,15 +202,13 @@ void Window::onPaint() {
   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                        nullptr);
 
-// hidden lego
-
-  // Draw hidden bunny
+  // Draw hidden lego
   model = glm::mat4(1.0);
   model = glm::translate(model, glm::vec3(-0.7f, 1.5f, -0.5f));
   model = glm::scale(model, glm::vec3(0.3f));
 
   abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(m_colorLocation, m_bunnyColor.r, m_bunnyColor.g, m_bunnyColor.b, m_bunnyColor.a);
+  abcg::glUniform4f(m_colorLocation, m_legoColor.r, m_legoColor.g, m_legoColor.b, m_legoColor.a);
   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                        nullptr);
 
@@ -247,73 +235,64 @@ void Window::showCameraPositionUI() {
   ImGui::Text("Z: %.2f", cameraPosition.z);
 
     if (ImGui::Button("Reset")){
-        m_bunnyColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);  
+      m_legoColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
     }
 
   ImGui::End();
 };
 
 void Window::onPaintUI() {
-
-
   abcg::OpenGLWindow::onPaintUI();
 
   static std::unordered_map<std::string, bool> objectVisibility{
-      {"whiteBunny", false},
-      {"yellowBunny", false},
-      {"greenBunny", false},
-      {"blueBunny", false},
-      {"redBunny", false}, 
-      {"hiddenBunny", false},};
+      {"whiteLego", false},
+      {"yellowLego", false},
+      {"greenLego", false},
+      {"blueLego", false},
+      {"redLego", false},
+      {"hiddenLego", false},};
   static std::string clickedMessage{""}; // Armazena a mensagem do objeto clicado
 
   showCameraPositionUI();
 
-
-    
-
-  // Detectar cliques do mouse nos objetos bunny usando raycasting
+  // Detectar cliques do mouse nos objetos lego usando raycasting
   if (ImGui::IsMouseClicked(0)) { // Botão esquerdo do mouse
     auto const [mouseX, mouseY] = ImGui::GetMousePos();
 
-    // Verificar clique no bunny branco
+    // Verificar clique no lego branco
     if (isSphereClicked(glm::vec3(-1.5f, 0.0f, 0.0f), 0.3f, mouseX, mouseY)) {
-      objectVisibility["whiteBunny"] = !objectVisibility["whiteBunny"];
-      clickedMessage = objectVisibility["whiteBunny"] ? "Hmm, I cannot see them from here... Maybe my friend on the right, the red one, saw something. They might have spotted them while avoiding space rocks or chasing aliens! You should ask them!" : "";
+      objectVisibility["whiteLego"] = !objectVisibility["whiteLego"];
+      clickedMessage = objectVisibility["whiteLego"] ? "Hmm, I cannot see them from here... Maybe my friend on the right, the red one, saw something. They might have spotted them while avoiding space rocks or chasing aliens! You should ask them!" : "";
     }
     else if (isSphereClicked(glm::vec3(-0.75f, 0.6f, -0.0f), 0.3f, mouseX, mouseY)) {
-      objectVisibility["yellowBunny"] = !objectVisibility["yellowBunny"];
-      clickedMessage = objectVisibility["yellowBunny"] ? "I have not seen anything yet, but maybe the green one up top has a better view. He could be busy catching a comet or chasing space dust, but maybe they saw something!" : "";
+      objectVisibility["yellowLego"] = !objectVisibility["yellowLego"];
+      clickedMessage = objectVisibility["yellowLego"] ? "I have not seen anything yet, but maybe the green one up top has a better view. He could be busy catching a comet or chasing space dust, but maybe they saw something!" : "";
     }
-    // Verificar clique no bunny amarelo
+    // Verificar clique no lego amarelo
     else if (isSphereClicked(glm::vec3(0.0f, 1.0f, -0.0f), 0.3f, mouseX, mouseY)) {
-      objectVisibility["greenBunny"] = !objectVisibility["greenBunny"];
-      clickedMessage = objectVisibility["greenBunny"] ? "I think I saw something... or maybe it was just a star falling. Who knows in this big space! You might want to check around me and yellow. We are floating higher than a rocket—could be something hiding up here!" : "";
+      objectVisibility["greenLego"] = !objectVisibility["greenLego"];
+      clickedMessage = objectVisibility["greenLego"] ? "I think I saw something... or maybe it was just a star falling. Who knows in this big space! You might want to check around me and yellow. We are floating higher than a rocket—could be something hiding up here!" : "";
     }
-    // Verificar clique no bunny azul
+    // Verificar clique no lego azul
     else if (isSphereClicked(glm::vec3(0.75f, 0.6f, 0.0f), 0.3f, mouseX, mouseY)) {
-      objectVisibility["blueBunny"] = !objectVisibility["blueBunny"];
-      clickedMessage = objectVisibility["blueBunny"] ? "I am looking hard, but no luck! Maybe red can see better, or maybe they are just floating off into space like I am! Go ask them!" : "";
+      objectVisibility["blueLego"] = !objectVisibility["blueLego"];
+      clickedMessage = objectVisibility["blueLego"] ? "I am looking hard, but no luck! Maybe red can see better, or maybe they are just floating off into space like I am! Go ask them!" : "";
     }
-    // Verificar clique no bunny vermelho
+    // Verificar clique no lego vermelho
     else if (isSphereClicked(glm::vec3(1.5f, 0.0f, 0.0f), 0.3f, mouseX, mouseY)) {
-      objectVisibility["redBunny"] = !objectVisibility["redBunny"];
-      clickedMessage = objectVisibility["redBunny"] ? "I cannot see them either! It’s like looking for a tiny spaceship in all this space! Maybe blue can see something, or maybe they’re lost in space! Who knows?" : "";
+      objectVisibility["redLego"] = !objectVisibility["redLego"];
+      clickedMessage = objectVisibility["redLego"] ? "I cannot see them either! It’s like looking for a tiny spaceship in all this space! Maybe blue can see something, or maybe they’re lost in space! Who knows?" : "";
     }
 
      else if (isSphereClicked(glm::vec3(-0.7f, 1.5f, -0.5f), 0.4f, mouseX, mouseY)) {
 
-      m_bunnyColor = glm::vec4(0.882f, 0.584f, 0.671f, 1.0f);
+      m_legoColor = glm::vec4(0.882f, 0.584f, 0.671f, 1.0f);
 
-      objectVisibility["hiddenBunny"] = !objectVisibility["hiddenBunny"];
-      clickedMessage = objectVisibility["hiddenBunny"] ? "You found me! I was starting to think I would have to set up camp on this asteroid. Thanks for rescuing me from the space void!" : "";
+      objectVisibility["hiddenLego"] = !objectVisibility["hiddenLego"];
+      clickedMessage = objectVisibility["hiddenLego"] ? "You found me! I was starting to think I would have to set up camp on this asteroid. Thanks for rescuing me from the space void!" : "";
     }
 
   }
-
-
-    
-
 
   if (!clickedMessage.empty()) {
     // Criar um painel na parte inferior ocupando 20% da altura da janela
@@ -340,9 +319,6 @@ void Window::onPaintUI() {
 
   ImGui::Text("Truck Speed: %.3f", m_truckSpeed);
   ImGui::Text("Truck Acceleration: %.3f", m_truckAcceleration);
-
-
-
 
   ImGui::End();
 }
